@@ -20,11 +20,11 @@ function formatTime(value?: string): string {
 }
 
 function formatDuration(seconds?: number): string {
-  if (!seconds || seconds < 0) {
+  if (seconds === undefined || seconds < 0) {
     return '';
   }
 
-  const totalMinutes = Math.round(seconds / 60);
+  const totalMinutes = Math.max(0, Math.round(seconds / 60));
   if (totalMinutes < 60) {
     return `${totalMinutes} min`;
   }
@@ -32,6 +32,24 @@ function formatDuration(seconds?: number): string {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return minutes > 0 ? `${hours} h ${minutes} min` : `${hours} h`;
+}
+
+function formatWaitUntil(value?: string): string {
+  if (!value) {
+    return '--';
+  }
+
+  const departure = new Date(value);
+  if (Number.isNaN(departure.getTime())) {
+    return '--';
+  }
+
+  const secondsUntilDeparture = (departure.getTime() - Date.now()) / 1000;
+  if (secondsUntilDeparture <= 60) {
+    return 'Saliendo';
+  }
+
+  return formatDuration(secondsUntilDeparture) || '--';
 }
 
 export function mapArrivalToTrip(result: ArrivalResult): Trip {
@@ -54,7 +72,7 @@ export function mapArrivalToTrip(result: ArrivalResult): Trip {
     estado: result.servicio.estado?.nombre ?? 'Confirmado',
     horaSalida: formatTime(departure),
     horaLlegada: formatTime(arrival),
-    esperaArribo: formatDuration(result.arribo.segundos) || '--',
+    esperaArribo: formatWaitUntil(departure),
     duracion: formatDuration(result.arribo.segundos),
     origen: result.servicio.desde?.estacion?.nombre ?? result.servicio.desde?.nombre ?? result.arribo.nombre ?? 'Origen',
     destino: result.servicio.hasta?.estacion?.nombre ?? result.servicio.hasta?.nombre ?? 'Destino'

@@ -401,6 +401,7 @@ button {
 
 .trip-card__stations div {
   display: grid;
+  align-content: start;
   gap: 2px;
   min-width: 0;
 }
@@ -415,11 +416,6 @@ button {
   color: #38393d;
   font-size: 22px;
   font-weight: 900;
-}
-
-.trip-card__stations small {
-  color: #747579;
-  font-size: 18px;
 }
 
 .state {
