@@ -36,7 +36,15 @@ function formatDuration(seconds?: number): string {
 
 export function mapArrivalToTrip(result: ArrivalResult): Trip {
   const departure = result.arribo.salida?.programada ?? result.arribo.salida?.estimada;
-  const arrival = result.arribo.llegada?.estimada ?? result.arribo.llegada?.programada;
+  const destinationArrival = result.servicio.hasta?.estacion?.llegada ?? result.servicio.hasta?.llegada;
+  const destinationDeparture = result.servicio.hasta?.estacion?.salida ?? result.servicio.hasta?.salida;
+  const arrival =
+    destinationArrival?.estimada ??
+    destinationArrival?.programada ??
+    destinationDeparture?.estimada ??
+    destinationDeparture?.programada ??
+    result.arribo.llegada?.estimada ??
+    result.arribo.llegada?.programada;
 
   return {
     id: result.servicio.numero,

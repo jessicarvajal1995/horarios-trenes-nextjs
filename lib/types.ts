@@ -19,11 +19,26 @@ export type Trip = {
   destino: string;
 };
 
+type StopTime = { programada?: string; estimada?: string };
+
+type ServiceStop = {
+  nombre?: string;
+  idElemento?: number;
+  llegada?: StopTime;
+  salida?: StopTime;
+  estacion?: {
+    nombre?: string;
+    idElemento?: number;
+    llegada?: StopTime;
+    salida?: StopTime;
+  };
+};
+
 export type ArrivalResult = {
   arribo: {
     anden?: { nombre?: string };
-    llegada?: { programada?: string; estimada?: string };
-    salida?: { programada?: string; estimada?: string };
+    llegada?: StopTime;
+    salida?: StopTime;
     segundos?: number;
     idElemento?: number;
     nombre?: string;
@@ -33,7 +48,7 @@ export type ArrivalResult = {
     ramal?: { id?: number; nombre?: string };
     tipo?: { nombre?: string };
     estado?: { nombre?: string };
-    desde?: { nombre?: string; idElemento?: number; estacion?: { nombre?: string; idElemento?: number } };
-    hasta?: { nombre?: string; idElemento?: number; estacion?: { nombre?: string; idElemento?: number } };
+    desde?: ServiceStop;
+    hasta?: ServiceStop;
   };
 };
