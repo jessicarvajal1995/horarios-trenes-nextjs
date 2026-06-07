@@ -47,8 +47,8 @@ export function mapArrivalToTrip(result: ArrivalResult): Trip {
     horaSalida: formatTime(departure),
     horaLlegada: formatTime(arrival),
     duracion: formatDuration(result.arribo.segundos),
-    origen: result.servicio.desde?.estacion?.nombre ?? result.arribo.nombre ?? 'Origen',
-    destino: result.servicio.hasta?.estacion?.nombre ?? 'Destino'
+    origen: result.servicio.desde?.estacion?.nombre ?? result.servicio.desde?.nombre ?? result.arribo.nombre ?? 'Origen',
+    destino: result.servicio.hasta?.estacion?.nombre ?? result.servicio.hasta?.nombre ?? 'Destino'
   };
 }
 

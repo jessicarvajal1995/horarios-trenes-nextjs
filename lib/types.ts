@@ -33,7 +33,7 @@ export type ArrivalResult = {
     ramal?: { id?: number; nombre?: string };
     tipo?: { nombre?: string };
     estado?: { nombre?: string };
-    desde?: { estacion?: { nombre?: string; idElemento?: number } };
-    hasta?: { estacion?: { nombre?: string; idElemento?: number } };
+    desde?: { nombre?: string; idElemento?: number; estacion?: { nombre?: string; idElemento?: number } };
+    hasta?: { nombre?: string; idElemento?: number; estacion?: { nombre?: string; idElemento?: number } };
   };
 };
