@@ -13,6 +13,7 @@ export type Trip = {
   tipoServicio: string;
   estado: string;
   horaSalida: string;
+  salida: string;
   horaLlegada: string;
   esperaArribo: string;
   duracion: string;

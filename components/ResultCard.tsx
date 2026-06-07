@@ -1,11 +1,55 @@
+'use client';
+
 import { CircleDot } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { Trip } from '@/lib/types';
 
 type ResultCardProps = {
   trip: Trip;
 };
 
+function formatDuration(seconds: number): string {
+  const totalMinutes = Math.max(0, Math.round(seconds / 60));
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min`;
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return minutes > 0 ? `${hours} h ${minutes} min` : `${hours} h`;
+}
+
+function formatWaitUntil(value: string): string {
+  if (!value) {
+    return '--';
+  }
+
+  const departure = new Date(value);
+  if (Number.isNaN(departure.getTime())) {
+    return '--';
+  }
+
+  const secondsUntilDeparture = (departure.getTime() - Date.now()) / 1000;
+  if (secondsUntilDeparture <= 60) {
+    return 'Saliendo';
+  }
+
+  return formatDuration(secondsUntilDeparture);
+}
+
 export function ResultCard({ trip }: ResultCardProps) {
+  const [waitUntilDeparture, setWaitUntilDeparture] = useState(() => formatWaitUntil(trip.salida));
+
+  useEffect(() => {
+    setWaitUntilDeparture(formatWaitUntil(trip.salida));
+
+    const timer = window.setInterval(() => {
+      setWaitUntilDeparture(formatWaitUntil(trip.salida));
+    }, 30_000);
+
+    return () => window.clearInterval(timer);
+  }, [trip.salida]);
+
   return (
     <article className="trip-card">
       <header className="trip-card__header">
@@ -36,7 +80,7 @@ export function ResultCard({ trip }: ResultCardProps) {
         </div>
 
         <div className="trip-card__arrival">
-          <span>{trip.esperaArribo === 'Saliendo' ? 'Saliendo' : `en ${trip.esperaArribo}`}</span>
+          <span>{waitUntilDeparture === 'Saliendo' ? 'Saliendo' : `en ${waitUntilDeparture}`}</span>
         </div>
 
         <div className="trip-card__stations">

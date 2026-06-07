@@ -117,6 +117,7 @@ export function mapArrivalToTrip(
     tipoServicio: result.servicio.tipo?.nombre ?? 'Servicio',
     estado: result.servicio.estado?.nombre ?? 'Confirmado',
     horaSalida: formatTime(departure),
+    salida: departure ?? '',
     horaLlegada: formatTime(arrival),
     esperaArribo: formatWaitUntil(departure),
     duracion: formatDuration(secondsBetween(departure, arrival)),
