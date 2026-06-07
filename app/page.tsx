@@ -71,7 +71,7 @@ export default function Home() {
         fecha,
         hora
       });
-      setResultados(arrivals.map(mapArrivalToTrip));
+      setResultados(arrivals.map((arrival) => mapArrivalToTrip(arrival, origen, destino)));
       setSelectedBranches([]);
       setSelectedTypes([]);
     } catch (err) {

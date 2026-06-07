@@ -51,5 +51,6 @@ export type ArrivalResult = {
     estado?: { nombre?: string };
     desde?: ServiceStop;
     hasta?: ServiceStop;
+    estaciones?: ServiceStop[];
   };
 };

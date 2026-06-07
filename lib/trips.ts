@@ -52,17 +52,63 @@ function formatWaitUntil(value?: string): string {
   return formatDuration(secondsUntilDeparture) || '--';
 }
 
-export function mapArrivalToTrip(result: ArrivalResult): Trip {
-  const departure = result.arribo.salida?.programada ?? result.arribo.salida?.estimada;
-  const destinationArrival = result.servicio.hasta?.estacion?.llegada ?? result.servicio.hasta?.llegada;
-  const destinationDeparture = result.servicio.hasta?.estacion?.salida ?? result.servicio.hasta?.salida;
-  const arrival =
-    destinationArrival?.estimada ??
-    destinationArrival?.programada ??
-    destinationDeparture?.estimada ??
-    destinationDeparture?.programada ??
-    result.arribo.llegada?.estimada ??
-    result.arribo.llegada?.programada;
+type StationSelection = { id?: string; nombre?: string } | null | undefined;
+
+type TripStop = NonNullable<ArrivalResult['servicio']['estaciones']>[number];
+
+function stopMatchesStation(stop: TripStop | undefined, station: StationSelection): stop is TripStop {
+  if (!stop || !station) {
+    return false;
+  }
+
+  return String(stop.estacion?.idElemento ?? stop.idElemento) === station.id;
+}
+
+function findServiceStop(result: ArrivalResult, station: StationSelection): TripStop | undefined {
+  return result.servicio.estaciones?.find((stop) => stopMatchesStation(stop, station));
+}
+
+function stopName(stop: TripStop | undefined, fallback: string): string {
+  return stop?.estacion?.nombre ?? stop?.nombre ?? fallback;
+}
+
+function stopArrivalTime(stop: TripStop | undefined): string | undefined {
+  const arrival = stop?.estacion?.llegada ?? stop?.llegada;
+  const departure = stop?.estacion?.salida ?? stop?.salida;
+
+  return arrival?.estimada ?? arrival?.programada ?? departure?.estimada ?? departure?.programada;
+}
+
+function stopDepartureTime(stop: TripStop | undefined): string | undefined {
+  const departure = stop?.estacion?.salida ?? stop?.salida;
+  const arrival = stop?.estacion?.llegada ?? stop?.llegada;
+
+  return departure?.estimada ?? departure?.programada ?? arrival?.estimada ?? arrival?.programada;
+}
+
+function secondsBetween(start?: string, end?: string): number | undefined {
+  if (!start || !end) {
+    return undefined;
+  }
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return undefined;
+  }
+
+  return (endDate.getTime() - startDate.getTime()) / 1000;
+}
+
+export function mapArrivalToTrip(
+  result: ArrivalResult,
+  selectedOrigin?: StationSelection,
+  selectedDestination?: StationSelection
+): Trip {
+  const originStop = findServiceStop(result, selectedOrigin) ?? result.servicio.desde?.estacion ?? result.servicio.desde;
+  const destinationStop = findServiceStop(result, selectedDestination) ?? result.servicio.hasta?.estacion ?? result.servicio.hasta;
+  const departure = stopDepartureTime(originStop) ?? result.arribo.salida?.programada ?? result.arribo.salida?.estimada;
+  const arrival = stopArrivalTime(destinationStop) ?? result.arribo.llegada?.estimada ?? result.arribo.llegada?.programada;
 
   return {
     id: result.servicio.numero,
@@ -73,9 +119,9 @@ export function mapArrivalToTrip(result: ArrivalResult): Trip {
     horaSalida: formatTime(departure),
     horaLlegada: formatTime(arrival),
     esperaArribo: formatWaitUntil(departure),
-    duracion: formatDuration(result.arribo.segundos),
-    origen: result.servicio.desde?.estacion?.nombre ?? result.servicio.desde?.nombre ?? result.arribo.nombre ?? 'Origen',
-    destino: result.servicio.hasta?.estacion?.nombre ?? result.servicio.hasta?.nombre ?? 'Destino'
+    duracion: formatDuration(secondsBetween(departure, arrival)),
+    origen: stopName(originStop, result.arribo.nombre ?? selectedOrigin?.nombre ?? 'Origen'),
+    destino: stopName(destinationStop, selectedDestination?.nombre ?? 'Destino')
   };
 }
 
