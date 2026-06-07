@@ -1,0 +1,268 @@
+{
+  "info": {
+    "name": "SOFSE Trenes API",
+    "description": "Coleccion para consultar la API de SOFSE con generacion automatica de credenciales y renovacion de JWT.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const baseUrl = pm.collectionVariables.get('base_url') || 'https://api-servicios.sofse.gob.ar/v1';",
+          "const authPath = pm.collectionVariables.get('auth_path') || '/auth/authorize';",
+          "const token = pm.collectionVariables.get('jwt') || '';",
+          "",
+          "function base64(value) {",
+          "  return Buffer.from(value).toString('base64');",
+          "}",
+          "",
+          "function cipher(value, step) {",
+          "  const rules = [",
+          "    { in: /a/g, out: ['#t', '#j'] },",
+          "    { in: /e/g, out: ['#x', '#p'] },",
+          "    { in: /i/g, out: ['#f', '#w'] },",
+          "    { in: /o/g, out: ['#l', '#8'] },",
+          "    { in: /u/g, out: ['#7', '#0'] },",
+          "    { in: /=/g, out: ['#g', '#v'] }",
+          "  ];",
+          "",
+          "  return rules.reduce((acc, rule) => acc.replace(rule.in, rule.out[step]), value);",
+          "}",
+          "",
+          "function reverse(value) {",
+          "  return value.split('').reverse().join('');",
+          "}",
+          "",
+          "function generateUsername() {",
+          "  const parts = new Date().toISOString().split(/-|T|:/);",
+          "  return base64(`${parts[0]}${parts[1]}${parts[2]}sofse`);",
+          "}",
+          "",
+          "function encodePassword(username) {",
+          "  const first = cipher(base64(username), 0);",
+          "  const second = cipher(base64(reverse(first)), 1);",
+          "  return encodeURIComponent(reverse(second));",
+          "}",
+          "",
+          "function generateCredentials() {",
+          "  const username = generateUsername();",
+          "  return { username, password: encodePassword(username) };",
+          "}",
+          "",
+          "function isTokenExpired(jwt) {",
+          "  if (!jwt) return true;",
+          "",
+          "  try {",
+          "    const payload = jwt.split('.')[1];",
+          "    const decoded = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));",
+          "    const skewSeconds = 30;",
+          "    return !decoded.exp || Date.now() >= (decoded.exp - skewSeconds) * 1000;",
+          "  } catch (error) {",
+          "    return true;",
+          "  }",
+          "}",
+          "",
+          "if (!isTokenExpired(token)) {",
+          "  pm.request.headers.upsert({ key: 'Authorization', value: token });",
+          "  return;",
+          "}",
+          "",
+          "pm.sendRequest({",
+          "  url: `${baseUrl}${authPath}`,",
+          "  method: 'POST',",
+          "  header: { 'Content-Type': 'application/json', 'User-Agent': 'okhttp/4.9.0', 'Accept': '*/*' },",
+          "  body: {",
+          "    mode: 'raw',",
+          "    raw: JSON.stringify(generateCredentials())",
+          "  }",
+          "}, (error, response) => {",
+          "  if (error) {",
+          "    throw new Error(`No se pudo autenticar contra SOFSE: ${error.message}`);",
+          "  }",
+          "",
+          "  if (!response || response.code >= 400) {",
+          "    throw new Error(`SOFSE auth respondio ${response && response.code}: ${response && response.text()}`);",
+          "  }",
+          "",
+          "  const data = response.json();",
+          "  if (!data.token) {",
+          "    throw new Error('SOFSE auth no devolvio token');",
+          "  }",
+          "",
+          "  pm.collectionVariables.set('jwt', data.token);",
+          "  pm.request.headers.upsert({ key: 'Authorization', value: data.token });",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api-servicios.sofse.gob.ar/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_path",
+      "value": "/auth/authorize",
+      "type": "string"
+    },
+    {
+      "key": "jwt",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "origen_id",
+      "value": "306",
+      "type": "string"
+    },
+    {
+      "key": "destino_id",
+      "value": "463",
+      "type": "string"
+    },
+    {
+      "key": "fecha",
+      "value": "2026-06-07",
+      "type": "string"
+    },
+    {
+      "key": "cantidad",
+      "value": "8",
+      "type": "string"
+    },
+    {
+      "key": "estacion_nombre",
+      "value": "Pilar",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Buscar estaciones",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "User-Agent",
+            "value": "okhttp/4.9.0",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "*/*",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/infraestructura/estaciones?nombre={{estacion_nombre}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "infraestructura",
+            "estaciones"
+          ],
+          "query": [
+            {
+              "key": "nombre",
+              "value": "{{estacion_nombre}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Arribos por estacion",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "User-Agent",
+            "value": "okhttp/4.9.0",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "*/*",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/arribos/estacion/{{origen_id}}?hasta={{destino_id}}&fecha={{fecha}}&cantidad={{cantidad}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "arribos",
+            "estacion",
+            "{{origen_id}}"
+          ],
+          "query": [
+            {
+              "key": "hasta",
+              "value": "{{destino_id}}"
+            },
+            {
+              "key": "fecha",
+              "value": "{{fecha}}"
+            },
+            {
+              "key": "cantidad",
+              "value": "{{cantidad}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Regenerar JWT manualmente",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.unset('jwt');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "User-Agent",
+            "value": "okhttp/4.9.0",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "*/*",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/infraestructura/estaciones?nombre={{estacion_nombre}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "infraestructura",
+            "estaciones"
+          ],
+          "query": [
+            {
+              "key": "nombre",
+              "value": "{{estacion_nombre}}"
+            }
+          ]
+        },
+        "description": "Este request borra el JWT antes de ejecutarse, forzando al script global a generar uno nuevo."
+      }
+    }
+  ]
+}
