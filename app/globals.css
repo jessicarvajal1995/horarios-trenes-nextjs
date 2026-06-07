@@ -364,13 +364,14 @@ button {
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
-  margin-top: -12px;
+  margin-top: -18px;
 }
 
-.trip-card__arrival strong {
+
+.trip-card__arrival span {
   color: #85868a;
   font-size: 19px;
-  font-weight: 800;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -566,10 +567,10 @@ button {
   }
 
   .trip-card__arrival {
-    margin-top: -10px;
+    margin-top: -14px;
   }
 
-  .trip-card__arrival strong {
+  .trip-card__arrival span {
     font-size: 17px;
   }
 

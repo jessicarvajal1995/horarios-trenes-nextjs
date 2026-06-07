@@ -36,8 +36,8 @@ export function ResultCard({ trip }: ResultCardProps) {
         </div>
 
         <div className="trip-card__arrival">
-          <strong>{trip.esperaArribo === 'Saliendo' ? 'Saliendo' : `En ${trip.esperaArribo}`}</strong>
-        </div> 
+          <span>{trip.esperaArribo === 'Saliendo' ? 'Saliendo' : `en ${trip.esperaArribo}`}</span>
+        </div>
 
         <div className="trip-card__stations">
           <div>
