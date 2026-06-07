@@ -27,28 +27,58 @@ function isTokenExpired(value: string) {
   }
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function internalRequest<T>({ method = 'GET', body, path, searchParams }: SofseRequest): Promise<T> {
   const url = new URL(`${SOFSE_BASE_URL}${path}`);
   searchParams?.forEach((value, key) => url.searchParams.append(key, value));
 
-  const response = await fetch(url, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: '*/*',
-      'User-Agent': 'okhttp/4.9.0',
-      'Cache-Control': 'no-cache',
-      ...(token ? { Authorization: token } : {})
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    cache: 'no-store'
-  });
+  const maxAttempts = method === 'GET' ? 4 : 2;
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    throw new Error(response.status === 403 ? UNAUTHORIZED : response.statusText);
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: '*/*',
+          'User-Agent': 'okhttp/4.9.0',
+          'Cache-Control': 'no-cache',
+          ...(token ? { Authorization: token } : {})
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        cache: 'no-store'
+      });
+
+      if (response.ok) {
+        return response.json() as Promise<T>;
+      }
+
+      if (response.status === 403) {
+        throw new Error(UNAUTHORIZED);
+      }
+
+      const message = await response.text();
+      lastError = new Error(message || response.statusText);
+
+      if (response.status < 500 || attempt === maxAttempts) {
+        throw lastError;
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('SOFSE request failed');
+
+      if (lastError.message === UNAUTHORIZED || attempt === maxAttempts) {
+        throw lastError;
+      }
+    }
+
+    await wait(150 * attempt);
   }
 
-  return response.json() as Promise<T>;
+  throw lastError ?? new Error('SOFSE request failed');
 }
 
 async function generateToken() {
