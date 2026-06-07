@@ -54,6 +54,7 @@ export function mapArrivalToTrip(result: ArrivalResult): Trip {
     estado: result.servicio.estado?.nombre ?? 'Confirmado',
     horaSalida: formatTime(departure),
     horaLlegada: formatTime(arrival),
+    esperaArribo: formatDuration(result.arribo.segundos) || '--',
     duracion: formatDuration(result.arribo.segundos),
     origen: result.servicio.desde?.estacion?.nombre ?? result.servicio.desde?.nombre ?? result.arribo.nombre ?? 'Origen',
     destino: result.servicio.hasta?.estacion?.nombre ?? result.servicio.hasta?.nombre ?? 'Destino'

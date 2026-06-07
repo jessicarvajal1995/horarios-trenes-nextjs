@@ -334,11 +334,43 @@ button {
   gap: 10px;
 }
 
+.trip-card__time-block {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.trip-card__time-block span,
+.trip-card__arrival span {
+  color: #85868a;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.trip-card__time-block--end {
+  justify-items: end;
+  text-align: right;
+}
+
 .trip-card__times strong {
   color: #37383c;
   font-size: clamp(46px, 14vw, 72px);
   font-weight: 900;
   letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.trip-card__arrival {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  margin-top: -12px;
+}
+
+.trip-card__arrival strong {
+  color: #85868a;
+  font-size: 19px;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -529,7 +561,20 @@ button {
   }
 
   .trip-card__times strong {
-    font-size: clamp(38px, 11vw, 48px);
+    font-size: clamp(36px, 10vw, 46px);
+  }
+
+  .trip-card__time-block span,
+  .trip-card__arrival span {
+    font-size: 15px;
+  }
+
+  .trip-card__arrival {
+    margin-top: -10px;
+  }
+
+  .trip-card__arrival strong {
+    font-size: 17px;
   }
 
   .trip-card__line {

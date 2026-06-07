@@ -21,12 +21,22 @@ export function ResultCard({ trip }: ResultCardProps) {
           </span>
         </div>
 
-        <div className="trip-card__times">
-          <strong>{trip.horaSalida}</strong>
+        <div className="trip-card__times" aria-label="Horarios del viaje">
+          <div className="trip-card__time-block">
+            <span>Salida</span>
+            <strong>{trip.horaSalida}</strong>
+          </div>
           <span className="trip-card__line">
             <CircleDot size={18} aria-hidden="true" />
           </span>
-          <strong>{trip.horaLlegada !== '--:--' ? trip.horaLlegada : trip.duracion}</strong>
+          <div className="trip-card__time-block trip-card__time-block--end">
+            <span>Llegada</span>
+            <strong>{trip.horaLlegada !== '--:--' ? trip.horaLlegada : trip.duracion}</strong>
+          </div>
+        </div>
+
+        <div className="trip-card__arrival">
+          <strong>en {trip.esperaArribo}</strong>
         </div>
 
         <div className="trip-card__stations">

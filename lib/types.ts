@@ -14,6 +14,7 @@ export type Trip = {
   estado: string;
   horaSalida: string;
   horaLlegada: string;
+  esperaArribo: string;
   duracion: string;
   origen: string;
   destino: string;
